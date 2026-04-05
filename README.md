@@ -1,179 +1,193 @@
-# Blockchain-Based Compliance and Audit System
+# 🔐 Secure-Academic-Records-using-Blockchain
 
-A full-stack application designed to ensure **secure, transparent, and tamper-proof academic data management** using **Blockchain, FastAPI, MongoDB, and React**.
+## 📌 Overview
 
----
-
-## Overview
-
-This system provides a role-based platform for managing academic operations such as **marks, attendance, and result approval**, while ensuring **compliance enforcement and auditability**.
-
-Every critical action is:
-
-* Validated using a **Compliance Engine**
-*  Logged as an **Audit Record**
-*  Secured using **SHA-256 hashing**
-*  Stored on **Blockchain (Ganache + Solidity)** for immutability
+The **Secure-Academic-Records-using-Blockchain** is a secure and tamper-proof platform designed to manage academic records such as marks, attendance, and result approvals.
+It integrates **Blockchain technology** with traditional backend systems to ensure **data integrity, transparency, and security**.
 
 ---
 
-##  Features
+## 🚀 Features
 
-###  Authentication & Security
+* 🔑 **Role-Based Authentication**
 
-* JWT-based authentication
-* Password hashing using bcrypt
-* Role-Based Access Control (Student, Teacher, Admin)
+  * Admin, Teacher, Student login using JWT
 
-###  Core Functionalities
+* 📊 **Academic Management**
 
-* Students can view marks, attendance, and profile
-* Teachers can update marks and attendance
-* Admins can approve results and manage users
+  * Teachers can update marks & attendance
+  * Admin can approve results
+  * Students can view their records
 
-###  Compliance Engine
+* ⛓ **Blockchain Integration**
 
-* Enforces predefined rules before any action
-* Blocks unauthorized actions
-* Ensures backend-level security
+  * Critical actions are logged on blockchain
+  * Ensures tamper-proof and transparent records
 
-###  Audit Logging
+* 📜 **Audit Logs**
 
-* Logs every action (ALLOWED / BLOCKED)
-* Includes actor, role, action, rule, timestamp
-* Generates SHA-256 hash for integrity
+  * Tracks all actions for verification
 
-###  Blockchain Integration
+* 🔐 **Secure Password Handling**
 
-* Uses Ganache (local Ethereum network)
-* Smart contract stores audit log hashes
-* Ensures tamper-proof records
-
-###  Verification Module
-
-* Recalculates hash from database
-* Compares with blockchain hash
-* Returns:
-
-  * ✅ VERIFIED
-  * ❌ TAMPERED
+  * Passwords hashed using bcrypt
 
 ---
 
-## Tech Stack
+## 🧠 System Architecture
 
-**Frontend:**
+```
+Frontend (React)
+        ↓
+Backend (FastAPI)
+        ↓
+MongoDB (Database)
+        ↓
+Blockchain (Web3 / Ethereum / Ganache)
+```
 
-* React (Vite)
-* JavaScript
+---
+
+## 🛠 Tech Stack
+
+### 💻 Frontend
+
+* React.js
 * Axios
+* CSS
 
-**Backend:**
+### ⚙️ Backend
 
 * FastAPI (Python)
-* JWT Authentication
-* bcrypt
+* Uvicorn
 
-**Database:**
+### 🗄 Database
 
 * MongoDB
 
-**Blockchain:**
+### 🔐 Authentication
 
-* Ganache (Ethereum local blockchain)
-* Solidity Smart Contract
+* JWT (JSON Web Tokens)
+* Passlib (bcrypt hashing)
+
+### ⛓ Blockchain
+
 * Web3.py
+* Ethereum (Ganache)
+
+### 🧰 Tools & Environment
+
+* VS Code
+* Git & GitHub
+* Postman / Swagger UI
+* Python Virtual Environment (venv)
 
 ---
 
-##  System Architecture
+## 📂 Project Structure
 
 ```
-React Frontend
-      ↓
-FastAPI Backend
-      ↓
-Compliance Engine
-      ↓
-MongoDB + Blockchain (Ganache)
-      ↓
-Audit Logs (Hash + Transaction ID)
+backend/
+  ├── app/
+  │   ├── api/
+  │   ├── services/
+  │   ├── core/
+  │   ├── db/
+  │   ├── blockchain/
+  │   └── main.py
+
+frontend/
+  ├── src/
+  ├── pages/
+  ├── components/
 ```
 
 ---
 
-##  Workflow
+## 🔧 Setup Instructions
 
-1. User logs in → JWT generated
-2. Role-based dashboard is loaded
-3. User performs action (marks/attendance update)
-4. Compliance Engine validates action
-5. Action is ALLOWED or BLOCKED
-6. Audit log is created
-7. SHA-256 hash is generated
-8. Hash stored in MongoDB + Blockchain
-9. Admin can view logs
-10. Verification checks integrity (VERIFIED / TAMPERED)
+### 1️⃣ Clone Repository
 
----
-
-##  Installation & Setup
-
-### 1️ Clone Repository
-
-```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+```
+git clone <your-repo-link>
+cd project-folder
 ```
 
-### 2️ Backend Setup
+### 2️⃣ Backend Setup
 
-```bash
-cd Backend
+```
+cd backend
 python -m venv venv
 venv\Scripts\activate   # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### 3️ Frontend Setup
+### 3️⃣ Frontend Setup
 
-```bash
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4️ Blockchain Setup
+---
 
-* Start Ganache on port **7545**
-* Deploy smart contract
-* Update `.env` with:
+## 🔐 Default Test Credentials
 
-  * CONTRACT_ADDRESS
-  * PRIVATE_KEY
+### 👨‍💼 Admin
+
+* ID: 99002
+* Password: admin123
+
+### 👨‍🎓 Student
+
+* ID: 20210002
+* Password: 1234
+
+### 👨‍🏫 Teacher
+
+* ID: 50001
+* Password: 1234
 
 ---
 
-##  Environment Variables
+## 🎯 Use Case
 
-`.env` file in backend:
+This system is useful for:
 
-```
-MONGO_URI=your_mongodb_uri
-SECRET_KEY=your_secret_key
-BLOCKCHAIN_URL=http://127.0.0.1:7545
-PRIVATE_KEY=your_private_key
-CONTRACT_ADDRESS=your_contract_address
+* Colleges & Universities
+* Secure academic record management
+* Preventing data tampering
+* Transparent result verification
 
 ---
 
-##  License
+## 🚧 Future Enhancements
 
-This project is developed for academic purposes.
+* 🌐 Deploy on cloud (AWS / Azure)
+* 📱 Mobile app integration
+* 🔗 Real Ethereum network integration
+* 📊 Advanced analytics dashboard
 
 ---
 
-##  Acknowledgement
+## 👨‍💻 Author
 
-This project was developed as part of a final year engineering project to demonstrate the integration of **Blockchain technology with compliance systems** for secure and transparent data management.
+**Vimal ,**
+**Sashwat ,**
+**Raj ,**
+
+# ⭐ Guide
+
+
+**Mohammed Ibrahim ,**
+**AP/CSE ,**
+**SONA COLEGE OF TECHNOLOGY .**
+
+---
+
+## ⭐ Conclusion
+
+This project demonstrates how **Blockchain + Backend Systems** can be combined to create a **secure, transparent, and tamper-proof academic management system**.
+
