@@ -1,4 +1,5 @@
 import logging
+import random
 logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -15,11 +16,21 @@ from app.core.security import (
     create_access_token,
     hash_password
 )
-from app.db.mongo import db
+from app.db.mongo import db, students_collection, teachers_collection, admins_collection
+
 router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parent.parent
 STORAGE_DIR = BASE_DIR / "storage"
 FALLBACK_RULE = {"rule_id": "N/A", "severity": "N/A"}
+
+# Fixed subjects — same as existing students in your DB
+SUBJECTS = ["CSE401", "CSE402", "CSE403", "CSE404", "CSE405"]
+
+def generate_random_marks():
+    return {s: random.randint(45, 98) for s in SUBJECTS}
+
+def generate_random_attendance():
+    return {s: random.randint(60, 100) for s in SUBJECTS}
 
 def load_json(filename: str):
     file_path = STORAGE_DIR / filename
@@ -29,7 +40,6 @@ def load_json(filename: str):
         return json.load(f)
 
 def handle_violation(action_type, current_user, rule):
-    """Log a BLOCKED action."""
     return create_audit_log(
         {
             "action_type": action_type,
@@ -41,10 +51,6 @@ def handle_violation(action_type, current_user, rule):
     )
 
 def handle_allowed(action_type, current_user, rule=None, target_reg_no=None):
-    """
-    Log a successfully completed (ALLOWED) action.
-    rule may be None when evaluate() returns no rule object (action fully permitted).
-    """
     payload = {
         "action_type": action_type,
         "actor":       current_user["registration_number"],
@@ -54,6 +60,7 @@ def handle_allowed(action_type, current_user, rule=None, target_reg_no=None):
     if target_reg_no is not None:
         payload["target"] = target_reg_no
     return create_audit_log(payload, rule or FALLBACK_RULE)
+
 
 class Action(BaseModel):
     action_type: str
@@ -91,25 +98,21 @@ class AddUserRequest(BaseModel):
     dob: str = ""
     gender: str = ""
 
+
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest):
     if not payload.registration_number or not payload.password:
         raise HTTPException(status_code=400, detail="Missing credentials")
-
     logger.info(f"Login attempt for {payload.registration_number}")
     user = find_user_by_reg_no(payload.registration_number)
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
     if not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid password")
-
     token = create_access_token({
         "sub":  str(user["registration_number"]),
         "role": user["role"].upper(),
     })
-
     logger.info(f"Login success: {payload.registration_number}")
     return {"access_token": token, "token_type": "bearer"}
 
@@ -133,14 +136,13 @@ def get_current_user_data(current_user: dict = Depends(get_current_user)):
         "result_status":       user.get("result_status"),
     }
 
+
 @router.post("/action")
 def action(req: Action, current_user: dict = Depends(get_current_user)):
     result = evaluate(req.action_type, current_user["role"])
-
     if result["status"] == "VIOLATION":
         audit = handle_violation(req.action_type, current_user, result["rule"])
         return {"status": "BLOCKED", "message": "Policy violation detected", "audit": audit}
-
     handle_allowed(req.action_type, current_user, result.get("rule"))
     return {
         "status":       "ALLOWED",
@@ -159,34 +161,35 @@ def modify_marks_endpoint(
         raise HTTPException(status_code=400, detail="Marks must be between 0 and 100")
     if not req.course:
         raise HTTPException(status_code=400, detail="Course is required")
-    if current_user["role"] not in ["TEACHER", "ADMIN"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
 
+    # Let compliance engine decide — this logs the violation properly
     result = evaluate("MODIFY_MARKS", current_user["role"])
 
     if result["status"] == "VIOLATION":
         audit = handle_violation("MODIFY_MARKS", current_user, result["rule"])
-        return {"status": "BLOCKED", "message": "Unauthorized attempt to modify marks", "audit": audit}
+        return {
+            "status":  "BLOCKED",
+            "message": "You are not authorized to modify marks.",
+            "log_id":  audit["log_id"],
+            "audit":   audit,
+        }
 
-    update = db["students"].update_one(
+    # Only TEACHER/ADMIN reach here
+    update = students_collection.update_one(
         {"registration_number": req.registration_number},
         {"$set": {f"marks.{req.course}": req.marks}},
     )
-
     if update.matched_count == 0:
         raise HTTPException(status_code=404, detail="Student not found")
-    handle_allowed(
-        "MODIFY_MARKS", current_user,
-        result.get("rule"),
-        target_reg_no=req.registration_number,
-    )
 
+    handle_allowed("MODIFY_MARKS", current_user, result.get("rule"), target_reg_no=req.registration_number)
     logger.info(f"Marks updated for {req.registration_number} by {current_user['registration_number']}")
     return {
         "status":     "SUCCESS",
         "message":    "Marks updated successfully",
         "updated_by": current_user["registration_number"],
     }
+
 
 @router.post("/update-attendance")
 def attendance_endpoint(
@@ -197,29 +200,25 @@ def attendance_endpoint(
         raise HTTPException(status_code=400, detail="Attendance must be between 0 and 100")
     if not req.course:
         raise HTTPException(status_code=400, detail="Course is required")
-    if current_user["role"] not in ["TEACHER", "ADMIN"]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
     result = evaluate("UPDATE_ATTENDANCE", current_user["role"])
 
     if result["status"] == "VIOLATION":
         audit = handle_violation("UPDATE_ATTENDANCE", current_user, result["rule"])
-        return {"status": "BLOCKED", "message": "Unauthorized attendance update attempt", "audit": audit}
+        return {
+            "status":  "BLOCKED",
+            "message": "You are not authorized to update attendance.",
+            "log_id":  audit["log_id"],
+            "audit":   audit,
+        }
 
-    update = db["students"].update_one(
+    update = students_collection.update_one(
         {"registration_number": req.registration_number},
         {"$set": {f"attendance.{req.course}": req.attendance}},
     )
-
     if update.matched_count == 0:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    handle_allowed(
-        "UPDATE_ATTENDANCE", current_user,
-        result.get("rule"),
-        target_reg_no=req.registration_number,
-    )
-
+    handle_allowed("UPDATE_ATTENDANCE", current_user, result.get("rule"), target_reg_no=req.registration_number)
     return {
         "status":     "SUCCESS",
         "message":    "Attendance updated successfully",
@@ -232,28 +231,24 @@ def approve_result_endpoint(
     current_user: dict = Depends(get_current_user),
 ):
     result = evaluate("APPROVE_RESULTS", current_user["role"])
-
     if result["status"] == "VIOLATION":
         audit = handle_violation("APPROVE_RESULTS", current_user, result["rule"])
         return {"status": "BLOCKED", "message": "Unauthorized result approval attempt", "audit": audit}
 
-    update = db["students"].update_one(
+    update = students_collection.update_one(
         {"registration_number": req.registration_number},
         {"$set": {"result_status": "APPROVED"}},
     )
     if update.matched_count == 0:
         raise HTTPException(status_code=404, detail="Student not found")
-    handle_allowed(
-        "APPROVE_RESULTS", current_user,
-        result.get("rule"),
-        target_reg_no=req.registration_number,
-    )
 
+    handle_allowed("APPROVE_RESULTS", current_user, result.get("rule"), target_reg_no=req.registration_number)
     return {
         "status":      "SUCCESS",
         "message":     "Result approved successfully",
         "approved_by": current_user["registration_number"],
     }
+
 
 @router.post("/add-user")
 def add_user(req: AddUserRequest, current_user: dict = Depends(get_current_user)):
@@ -264,10 +259,17 @@ def add_user(req: AddUserRequest, current_user: dict = Depends(get_current_user)
     if role not in ["STUDENT", "TEACHER", "ADMIN"]:
         raise HTTPException(status_code=400, detail="Invalid role")
 
-    collection_map = {"STUDENT": "students", "TEACHER": "teachers", "ADMIN": "admins"}
+    collection_map = {
+        "STUDENT": students_collection,
+        "TEACHER": teachers_collection,
+        "ADMIN":   admins_collection,
+    }
     collection = collection_map[role]
 
-    existing = db[collection].find_one({"registration_number": req.registration_number})
+    print(f"[ADD USER] {role}: {req.name} ({req.registration_number})")
+    print(f"[ADD USER] DB: {collection.database.name}  Collection: {collection.name}")
+
+    existing = collection.find_one({"registration_number": req.registration_number})
     if existing:
         raise HTTPException(status_code=409, detail="Registration number already exists")
 
@@ -280,25 +282,43 @@ def add_user(req: AddUserRequest, current_user: dict = Depends(get_current_user)
     }
 
     if role == "STUDENT":
+        marks      = generate_random_marks()
+        attendance = generate_random_attendance()
+        print(f"[ADD USER] marks={marks}")
+        print(f"[ADD USER] attendance={attendance}")
         doc.update({
             "year":          req.year,
             "phone":         req.phone,
             "address":       req.address,
             "dob":           req.dob,
             "gender":        req.gender,
-            "marks":         {},
-            "attendance":    {},
+            "marks":         marks,
+            "attendance":    attendance,
             "result_status": "PENDING",
         })
 
-    db[collection].insert_one(doc)
-    return {"status": "SUCCESS", "message": f"{role} '{req.name}' added successfully."}
+    try:
+        result = collection.insert_one(doc)
+        print(f"[ADD USER] Inserted _id={result.inserted_id}")
+        verify = collection.find_one({"_id": result.inserted_id})
+        if verify:
+            print(f"[ADD USER] CONFIRMED in {collection.database.name}.{collection.name}: {verify['name']}")
+        else:
+            print("[ADD USER] WARNING: insert reported success but document not found on re-query!")
+    except Exception as e:
+        print(f"[ADD USER] MONGO ERROR: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    return {
+        "status":  "SUCCESS",
+        "message": f"{role} '{req.name}' added successfully.",
+    }
+
 
 @router.get("/verify/{log_id}")
 def verify(log_id: str):
     logger.info(f"Verification requested for log_id: {log_id}")
     log = db["audit_logs"].find_one({"log_id": log_id})
-
     if not log:
         return {"status": "NOT_FOUND"}
 
@@ -313,9 +333,8 @@ def verify(log_id: str):
 
     recalculated_hash = hashlib.sha256(hash_input.encode()).hexdigest()
     stored_hash       = log.get("hash")
-
-    blockchain_hash  = None
-    blockchain_valid = False
+    blockchain_hash   = None
+    blockchain_valid  = False
 
     if log.get("blockchain_tx"):
         try:
@@ -339,22 +358,19 @@ def verify(log_id: str):
         },
     }
 
+
 @router.get("/health")
 def health():
     return {"status": "OK"}
+
 
 @router.get("/audit-logs")
 def get_audit_logs(
     current_user: dict = Depends(get_current_user),
     actor: str = Query(None, description="Filter by registration number (actor or target)"),
 ):
-    """
-    ADMIN  → all logs; can filter by any reg no (actor or target).
-    TEACHER → their own logs + all student-action logs; can filter by student reg no.
-    STUDENT → 403.
-    """
-    role   = current_user["role"]
-    my_reg = str(current_user["registration_number"])
+    role    = current_user["role"]
+    my_reg  = str(current_user["registration_number"])
     student_actions = ["MODIFY_MARKS", "UPDATE_ATTENDANCE", "APPROVE_RESULTS"]
 
     if role == "ADMIN":
@@ -384,39 +400,39 @@ def get_audit_logs(
 
     else:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+
     for log in logs:
         for field in ("actor", "target"):
             if field in log:
                 log[field] = str(log[field])
 
     logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-
     return logs
+
 
 @router.get("/student/{reg_no}")
 def get_student_by_id(reg_no: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] not in ["TEACHER", "ADMIN"]:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    student = db["students"].find_one(
+    student = students_collection.find_one(
         {"registration_number": int(reg_no)},
         {"_id": 0, "password_hash": 0},
     )
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-
     return student
+
 
 @router.get("/teacher/{reg_no}")
 def get_teacher_by_id(reg_no: int, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "ADMIN":
         raise HTTPException(status_code=403, detail="Only admins can look up teachers")
 
-    teacher = db["teachers"].find_one(
+    teacher = teachers_collection.find_one(
         {"registration_number": int(reg_no)},
         {"_id": 0, "password_hash": 0},
     )
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
-
     return teacher
