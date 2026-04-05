@@ -161,24 +161,136 @@ function UpdateAttendanceView() {
     </div>
   );
 }
+const wrap = {
+  padding: "40px 60px",
+  background: "linear-gradient(120deg,#f8fafc,#e0f2fe)",
+  minHeight: "100vh",
+};
 
-const resultColor = s => s === "SUCCESS" ? "#4CAF50" : s === "BLOCKED" ? "#fbc02d" : "#e53935";
-const resultBox = s => ({ marginTop: 14, padding: "12px 16px", borderRadius: 8,
+/* GRID */
+const grid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: 20,
+  marginTop: 20,
+};
+
+/* STUDENT CARD */
+const card = {
+  background: "rgba(255,255,255,0.8)",
+  backdropFilter: "blur(14px)",
+  borderRadius: 16,
+  padding: 18,
+  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+  transition: "0.3s",
+  cursor: "pointer",
+};
+
+/* TITLE */
+const courseLabel = {
+  color: "#2563eb",
+  fontWeight: 600,
+  fontSize: 14,
+};
+
+/* SCORE */
+const scoreText = {
+  fontSize: 28,
+  fontWeight: 700,
+  color: "#111",
+};
+
+const outOf = {
+  fontSize: 12,
+  color: "#64748b",
+};
+
+/* PROGRESS BAR */
+const bar = {
+  height: 6,
+  background: "#e5e7eb",
+  borderRadius: 6,
+  marginTop: 6,
+};
+
+const barFill = {
+  height: "100%",
+  borderRadius: 6,
+};
+
+/* FORM CARD (TEACHER + ADMIN) */
+const formCard = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(18px)",
+  padding: 24,
+  borderRadius: 18,
+  boxShadow: "0 15px 40px rgba(0,0,0,0.1)",
+  maxWidth: 600,
+  marginBottom: 20,
+};
+
+/* STUDENT DETAILS CARD */
+const studentCard = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(18px)",
+  padding: 24,
+  borderRadius: 18,
+  boxShadow: "0 15px 40px rgba(0,0,0,0.1)",
+  marginTop: 20,
+};
+
+/* LABEL */
+const label = {
+  fontSize: 13,
+  color: "#64748b",
+  marginBottom: 6,
+};
+
+/* INPUT */
+const inputStyle = {
+  padding: "12px 14px",
+  borderRadius: 10,
+  border: "1px solid #e2e8f0",
+  background: "#f8fafc",
+  fontSize: 14,
+};
+
+/* BUTTON */
+const btn = {
+  padding: "12px 18px",
+  borderRadius: 10,
+  border: "none",
+  background: "linear-gradient(135deg,#3b82f6,#06b6d4)",
+  color: "white",
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+/* SEARCH BUTTON */
+const searchBtn = {
+  padding: "12px 18px",
+  borderRadius: 10,
+  border: "none",
+  background: "linear-gradient(135deg,#22c55e,#4ade80)",
+  color: "white",
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+/* RESULT BOX */
+const resultBox = s => ({
+  marginTop: 16,
+  padding: "12px 16px",
+  borderRadius: 10,
+  background: "#fff",
   border: `1px solid ${resultColor(s)}`,
-  background: s === "SUCCESS" ? "#1b3a1f" : s === "BLOCKED" ? "#3a2e00" : "#3a1b1b" });
+});
 
-const wrap       = { padding: 24 };
-const grid       = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 16 };
-const card       = { background: "#2a2a2a", padding: 16, borderRadius: 10 };
-const studentCard = { background: "#1e1e1e", padding: 20, borderRadius: 10, marginBottom: 16 };
-const formCard   = { background: "#1e1e1e", padding: 20, borderRadius: 10, maxWidth: 500, marginBottom: 16 };
-const courseLabel = { color: "#4CAF50", fontWeight: "bold", margin: "0 0 4px", fontSize: 13 };
-const scoreText  = { fontSize: 22, fontWeight: "bold", margin: "0 0 6px" };
-const outOf      = { fontSize: 12, color: "#aaa" };
-const bar        = { height: 4, background: "#333", borderRadius: 2 };
-const barFill    = { height: "100%", borderRadius: 2 };
-const label      = { fontSize: 12, color: "#aaa", marginBottom: 6, display: "block" };
-const inputStyle = { padding: "10px 12px", borderRadius: 6, border: "1px solid #444", background: "#2c2c2c", color: "white", fontSize: 14 };
-const searchBtn  = { padding: "10px 16px", borderRadius: 6, border: "none", background: "#4CAF50", color: "white", fontWeight: 600, cursor: "pointer" };
-const btn        = { padding: "10px 16px", borderRadius: 8, border: "none", background: "#4CAF50", color: "white", fontWeight: 600, cursor: "pointer" };
-const ruleNote   = { marginTop: 16, padding: "10px 14px", borderRadius: 8, border: "1px solid #333", background: "#1a1a1a" };
+/* RULE NOTE */
+const ruleNote = {
+  marginTop: 20,
+  padding: "12px 16px",
+  borderRadius: 10,
+  background: "#f1f5f9",
+  color: "#64748b",
+};

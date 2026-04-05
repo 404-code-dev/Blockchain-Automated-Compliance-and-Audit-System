@@ -1,108 +1,211 @@
 import { useState } from "react";
 import api from "../api";
+
 export default function Profile({ user }) {
+  const [activeTab, setActiveTab] = useState("personal");
+
   if (!user) return <p>Loading...</p>;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>My Profile</h2>
+    <div style={page}>
 
-      <div style={grid}>
-        <div style={{ ...card, gridColumn: "span 2" }}>
-          <div style={profileGrid}>
-            <div>
-              <p style={fieldLabel}>Name</p>
-              <p style={fieldValue}>{user.name || "—"}</p>
-            </div>
+      {/* TITLE */}
+      <h2 style={title}>My Profile</h2>
 
-            <div>
-              <p style={fieldLabel}>Registration Number</p>
-              <p style={fieldValue}>{user.registration_number}</p>
-            </div>
+      <div style={layout}>
 
-            <div>
-              <p style={fieldLabel}>Department</p>
-              <p style={fieldValue}>{user.department || "—"}</p>
-            </div>
-
-            <div>
-              <p style={fieldLabel}>Year</p>
-              <p style={fieldValue}>{user.year || "—"}</p>
-            </div>
-
-            <div>
-              <p style={fieldLabel}>Date of Birth</p>
-              <p style={fieldValue}>{user.dob || "—"}</p>
-            </div>
-
-            <div>
-              <p style={fieldLabel}>Phone</p>
-              <p style={fieldValue}>{user.phone || "—"}</p>
-            </div>
-
-            <div>
-              <p style={fieldLabel}>Address</p>
-              <p style={fieldValue}>{user.address || "—"}</p>
-            </div>
-
-            <div>
-              <p style={fieldLabel}>Gender</p>
-              <p style={fieldValue}>{user.gender || "—"}</p>
-            </div>
+        {/* LEFT CARD */}
+        <div style={leftCard}>
+          <div style={avatar}>
+            {user.name?.[0] || "U"}
           </div>
+
+          <h3 style={name}>{user.name}</h3>
+          <p style={email}>{user.email}</p>
+
+          <span style={roleBadge}>
+            {user.role || "User"}
+          </span>
         </div>
 
-        <div style={card}>
-          <h4>Result Status</h4>
-          <span style={statusBadge(user.result_status)}>
-            {user.result_status || "—"}
-          </span>
+        {/* RIGHT CARD */}
+        <div style={rightCard}>
+
+          {/* TABS */}
+          <div style={tabs}>
+            <div
+              style={{
+                ...tab,
+                borderBottom: activeTab === "personal" ? "3px solid #6366f1" : "none",
+                color: activeTab === "personal" ? "#6366f1" : "#6b7280"
+              }}
+              onClick={() => setActiveTab("personal")}
+            >
+              👤 Personal Details
+            </div>
+
+            
+          </div>
+
+          {/* CONTENT */}
+          {activeTab === "personal" && (
+            <div>
+
+              <div style={sectionHeader}>
+                <h3>Your Information</h3>
+                
+              </div>
+
+              <div style={formGrid}>
+
+                <Input label="Full Name" value={user.name} />
+                <Input label="Department" value={user.department} />
+                <Input label="Year" value={user.year} />
+                <Input label="Phone" value={user.phone} />
+                <Input label="Address" value={user.address} />
+
+              </div>
+            </div>
+          )}
+
+          
+          
+
         </div>
       </div>
     </div>
   );
 }
 
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: "15px",
-  marginBottom: "24px",
+/* 🔥 REUSABLE INPUT */
+function Input({ label, value }) {
+  return (
+    <div>
+      <p style={labelStyle}>{label}</p>
+      <div style={inputBox}>{value || "—"}</div>
+    </div>
+  );
+}
+
+//////////////////// STYLES ////////////////////
+
+const page = {
+  padding: "40px 70px",
+  fontFamily: "Poppins, sans-serif",
+  background: "#f3f6fb",
+  minHeight: "100vh"
 };
 
-const profileGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-  gap: "16px",
+const title = {
+  fontSize: "30px",
+  fontWeight: "800",
+  marginBottom: "25px",
+  color: "#111827"
 };
 
-const card = {
-  background: "#1e1e1e",
-  padding: "16px",
-  borderRadius: "10px",
-  boxShadow: "0 0 8px rgba(0,0,0,0.4)",
+const layout = {
+  display: "flex",
+  gap: "25px",
+  flexWrap: "wrap"
 };
 
-const fieldLabel = {
-  fontSize: "11px",
-  color: "#888",
-  textTransform: "uppercase",
+const leftCard = {
+  flex: "1",
+  minWidth: "280px",
+  background: "white",
+  padding: "30px",
+  borderRadius: "16px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+  textAlign: "center"
 };
 
-const fieldValue = {
-  fontSize: "15px",
-  fontWeight: "500",
+const avatar = {
+  width: "100px",
+  height: "100px",
+  borderRadius: "50%",
+  background: "#e0e7ff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "32px",
+  fontWeight: "700",
+  margin: "0 auto 15px",
+  color: "#4f46e5",
+  border: "4px solid #6366f1"
 };
 
-const statusBadge = (val) => ({
-  display: "inline-block",
+const name = {
+  fontSize: "20px",
+  fontWeight: "700"
+};
+
+const email = {
+  fontSize: "14px",
+  color: "#6b7280",
+  marginBottom: "10px"
+};
+
+const roleBadge = {
+  background: "#eef2ff",
+  color: "#4f46e5",
   padding: "6px 14px",
   borderRadius: "20px",
-  background:
-    val === "APPROVED"
-      ? "#4CAF50"
-      : val === "REJECTED"
-      ? "#e53935"
-      : "#fbc02d",
-  color: val === "PENDING" ? "black" : "white",
-});
+  fontSize: "12px"
+};
+
+const rightCard = {
+  flex: "2",
+  minWidth: "400px",
+  background: "white",
+  borderRadius: "16px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+  overflow: "hidden"
+};
+
+const tabs = {
+  display: "flex",
+  borderBottom: "1px solid #eee"
+};
+
+const tab = {
+  padding: "15px 20px",
+  cursor: "pointer",
+  fontWeight: "600"
+};
+
+const sectionHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "20px"
+};
+
+const editBtn = {
+  background: "#e0e7ff",
+  border: "none",
+  padding: "8px 14px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  color: "#4f46e5"
+};
+
+const formGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+  gap: "20px",
+  padding: "20px"
+};
+
+const labelStyle = {
+  fontSize: "12px",
+  color: "#6b7280",
+  marginBottom: "6px",
+  fontWeight: "600"
+};
+
+const inputBox = {
+  background: "#f3f4f6",
+  padding: "12px",
+  borderRadius: "10px",
+  fontWeight: "500"
+};

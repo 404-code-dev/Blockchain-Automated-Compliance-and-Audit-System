@@ -91,28 +91,52 @@ class AddUserRequest(BaseModel):
     dob: str = ""
     gender: str = ""
 
+# @router.post("/login", response_model=LoginResponse)
+# def login(payload: LoginRequest):
+#     if not payload.registration_number or not payload.password:
+#         raise HTTPException(status_code=400, detail="Missing credentials")
+
+#     logger.info(f"Login attempt for {payload.registration_number}")
+#     user = find_user_by_reg_no(payload.registration_number)
+
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     if not verify_password(payload.password, user["password_hash"]):
+#         raise HTTPException(status_code=401, detail="Invalid password")
+
+#     token = create_access_token({
+#         "sub":  str(user["registration_number"]),
+#         "role": user["role"].upper(),
+#     })
+
+#     logger.info(f"Login success: {payload.registration_number}")
+#     return {"access_token": token, "token_type": "bearer"}
+
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest):
-    if not payload.registration_number or not payload.password:
-        raise HTTPException(status_code=400, detail="Missing credentials")
-
     logger.info(f"Login attempt for {payload.registration_number}")
+
     user = find_user_by_reg_no(payload.registration_number)
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # ✅ use your existing function
     if not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid password")
 
+    # ✅ generate JWT token (already implemented in your project)
     token = create_access_token({
         "sub":  str(user["registration_number"]),
         "role": user["role"].upper(),
     })
 
     logger.info(f"Login success: {payload.registration_number}")
-    return {"access_token": token, "token_type": "bearer"}
-
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
 
 @router.get("/me")
 def get_current_user_data(current_user: dict = Depends(get_current_user)):

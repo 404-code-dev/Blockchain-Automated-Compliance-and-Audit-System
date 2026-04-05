@@ -51,7 +51,15 @@ export default function AdminPanel({ user }) {
 
   return (
     <div style={wrap}>
-      <h2 style={{ marginBottom: 4 }}>Add New User</h2>
+      <h2 style={{
+  fontSize: "32px",
+  fontWeight: "700",
+  color: "#111",
+  marginBottom: 6,
+  textAlign: "center"
+}}>
+  Add New User
+</h2>
       <p style={sub}>Only admins can create new students, teachers, or admins.</p>
 
       <div style={formCard}>
@@ -144,18 +152,86 @@ function Row({ label, children }) {
     </div>
   );
 }
+const wrap = {
+  padding: "50px 70px",
+  minHeight: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  background: "linear-gradient(120deg,#f8fafc,#e0f2fe)",
+};
 
-const resultColor = s => s === "SUCCESS" ? "#4CAF50" : s === "BLOCKED" ? "#fbc02d" : "#e53935";
-const resultBox = s => ({ marginTop: 14, padding: "12px 16px", borderRadius: 8,
-  border: `1px solid ${resultColor(s)}`,
-  background: s === "SUCCESS" ? "#1b3a1f" : s === "BLOCKED" ? "#3a2e00" : "#3a1b1b" });
+const sub = {
+  color: "#64748b",
+  fontSize: 14,
+  marginBottom: 24,
+  textAlign: "center",
+};
 
-const wrap     = { padding: 24 };
-const sub      = { color: "#888", fontSize: 13, marginBottom: 24 };
-const formCard = { background: "#1e1e1e", padding: 24, borderRadius: 10, maxWidth: 480 };
-const labelStyle = { fontSize: 12, color: "#aaa", marginBottom: 4, display: "block" };
-const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: 6, border: "1px solid #444", background: "#2c2c2c", color: "white", fontSize: 14, boxSizing: "border-box" };
-const btn      = { width: "100%", padding: 11, borderRadius: 8, border: "none", background: "#4CAF50", color: "white", fontWeight: 600, cursor: "pointer", fontSize: 14 };
-const roleBtn  = { flex: 1, padding: "8px", borderRadius: 6, border: "1px solid #444", background: "transparent", color: "#888", cursor: "pointer", fontSize: 13 };
-const roleBtnActive = { background: "#4CAF50", color: "white", border: "1px solid #4CAF50" };
-const ruleNote = { marginTop: 16, padding: "10px 14px", borderRadius: 8, border: "1px solid #333", background: "#1a1a1a", maxWidth: 480 };
+const formCard = {
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(16px)",
+  padding: 28,
+  borderRadius: 18,
+  maxWidth: 520,
+  width: "100%",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.08)",
+};
+
+const labelStyle = {
+  fontSize: 13,
+  color: "#64748b",
+  marginBottom: 6,
+  display: "block",
+  fontWeight: 600,
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: 10,
+  border: "1px solid #e2e8f0",
+  background: "#f8fafc",
+  color: "#111",
+  fontSize: 14,
+};
+
+const btn = {
+  width: "100%",
+  padding: 13,
+  borderRadius: 10,
+  border: "none",
+  background: "linear-gradient(135deg,#22c55e,#16a34a)",
+  color: "white",
+  fontWeight: 700,
+  cursor: "pointer",
+  fontSize: 15,
+};
+
+const roleBtn = {
+  flex: 1,
+  padding: "10px",
+  borderRadius: 10,
+  border: "1px solid #e2e8f0",
+  background: "#f8fafc",
+  color: "#64748b",
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
+const roleBtnActive = {
+  background: "#22c55e",
+  color: "white",
+  border: "1px solid #22c55e",
+};
+
+const ruleNote = {
+  marginTop: 20,
+  padding: "12px 16px",
+  borderRadius: 12,
+  border: "1px solid #fecaca",
+  background: "#fff5f5",
+  maxWidth: 520,
+  width: "100%",
+  textAlign: "center",
+};

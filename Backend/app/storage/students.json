@@ -4,7 +4,7 @@
         "name": "Sashwat Ayal",
         "department": "CSE",
         "year": 4,
-        "password_hash": "$2b$12$TaGop0txEZEa.ghx.sErOOb5YXjDgvGo8iP79sJaWG/N2yQYnuIYy",
+        "password_hash": "student123",
         "role": "STUDENT",
         "marks": {
             "CSE401": 77
